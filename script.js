@@ -1,18 +1,3 @@
-/*
-
-let price = 19.5;
-let cid = [
-  ['PENNY', 1.01],
-  ['NICKEL', 2.05],
-  ['DIME', 3.1],
-  ['QUARTER', 4.25],
-  ['ONE', 90],
-  ['FIVE', 55],
-  ['TEN', 20],
-  ['TWENTY', 60],
-  ['ONE HUNDRED', 100]
-];
-*/
 let price = 19.5;
 let cid = [
   ["PENNY", 1.01],
@@ -25,108 +10,100 @@ let cid = [
   ["TWENTY", 60],
   ["ONE HUNDRED", 100],
 ];
+
+const currencyValues = {
+  "PENNY": 0.01,
+  "NICKEL": 0.05,
+  "DIME": 0.1,
+  "QUARTER": 0.25,
+  "ONE": 1,
+  "FIVE": 5,
+  "TEN": 10,
+  "TWENTY": 20,
+  "ONE HUNDRED": 100,
+};
+
 const priceContainer = document.getElementById("price");
 const cash = document.getElementById("cash");
 const purchaseBtn = document.getElementById("purchase-btn");
 const changeDueContainer = document.getElementById("change-due");
 const drawerContainer = document.getElementById("drawer");
-let changeDueObj = {};
 
 const displayCash = () => {
   drawerContainer.innerHTML = cid
-    .map((item) => `<p>${item[0]}: $${item[1]}</p>`)
+    .map((item) => `<p>${item[0]}: $${item[1].toFixed(2)}</p>`) 
     .join("");
 };
+
 const handlePurchase = () => {
-  if (isChangeNeeded()) {
-    const status = calculateChange();
-    changeDueContainer.innerText = status;
-    for (let i = 0; i < Object.keys(changeDueObj).length; i++) {
-      const currentKey = Object.keys(changeDueObj)[i];
-      changeDueContainer.innerHTML += `<p>${currentKey}: &dollar;${changeDueObj[currentKey]}</p>`;
-    }
-  } else {
-    console.log("no change needed");
-  }
-};
+  let changeDueObj = {};
+  let changeDue = parseFloat((parseFloat(cash.value) - price).toFixed(2));
+  let totalCash = parseFloat(cid.reduce((sum, curr) => sum + curr[1], 0).toFixed(2));
 
-const isChangeNeeded = () => {
-  const difference = Number((Number(cash.value) - price).toFixed(2));
-  if (difference < 0) {
+  if (changeDue < 0) {
     alert("Customer does not have enough money to purchase the item");
-    return false;
-  } else if (difference === 0) {
-    changeDueContainer.textContent =
-      "No change due - customer paid with exact cash";
-    return false;
-  } else {
-    return true;
+    return;
   }
-};
 
-const calculateChange = () => {
-  const difference = Number((Number(cash.value) - price).toFixed(2));
-  const statusArr = [
-    "Status: INSUFFICIENT_FUNDS",
-    "Status: CLOSED",
-    "Status: OPEN",
-  ];
-  const totalCash = Number(
-    [...cid].reduce((sum, curr) => sum + curr[1], 0).toFixed(2)
+  if (changeDue === 0) {
+    changeDueContainer.textContent = "No change due - customer paid with exact cash";
+    return;
+  }
+
+  if (totalCash < changeDue) {
+    changeDueContainer.textContent = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  let newCid = JSON.parse(JSON.stringify(cid)).reverse();
+  for (let i = 0; i < newCid.length; i++) {
+    let denom = newCid[i][0];
+    let denomValue = currencyValues[denom];
+    let amount = newCid[i][1];
+    let amountToGive = 0;
+
+    while (changeDue >= denomValue && amount > 0) {
+      changeDue = parseFloat((changeDue - denomValue).toFixed(2));
+      amount -= denomValue;
+      amountToGive += denomValue;
+    }
+
+    newCid[i][1] = amount;
+
+    if (amountToGive > 0) {
+      changeDueObj[denom] = amountToGive;
+    }
+  }
+
+  if (changeDue > 0) {
+    changeDueContainer.textContent = "Status: INSUFFICIENT_FUNDS";
+    return;
+  }
+
+  let remainingCash = parseFloat(
+    newCid.reduce((sum, [_, amount]) => sum + amount, 0).toFixed(2)
   );
 
-  const calculate = (difference, cid) => {
-    if (difference === 0) {
-      return;
-    } else if (difference < 0) {
-      return;
-    } else {
-      const steps = [0.01, 0.05, 0.1, 0.25, 1, 5, 10, 20, 100];
-      for (let i = steps.length - 1; i >= 0; i--) {
-        if (difference > steps[i] && difference < steps[i + 1]) {
-          if (cid[i][1] > 0) {
-            const newCid = cid.map((curr, index) => {
-              if (index === i) {
-                return [curr[0], curr[1] - steps[i]];
-              } else {
-                return curr;
-              }
-            });
-            const newDifference = difference - steps[i];
-            if (Object.hasOwn(changeDueObj, cid[i][0])) {
-              changeDueObj[cid[i][0]] += steps[i];
-            } else {
-              changeDueObj[cid[i][0]] = steps[i];
-            }
-            // console.log(changeDueObj);
-            calculate(newDifference, newCid);
-          } else {
-            return "insufficient fund";
-          }
-        }
-      }
-    }
-  };
+  let status = remainingCash === 0 ? "Status: CLOSED" : "Status: OPEN";
+  let changeString = Object.entries(changeDueObj)
+    .sort((a, b) => currencyValues[b[0]] - currencyValues[a[0]])
+    .map(([denom, amount]) => `${denom}: $${amount.toFixed(2)}`)
+    .join(" ");
 
-  if (totalCash < difference) {
-    return statusArr[0];
-  } else {
-    const status = calculate(difference, cid);
-    if (status === "insufficient fund") {
-      return statusArr[0];
-    } else if (totalCash === 0) {
-      return statusArr[1];
-    } else {
-      return statusArr[2];
-    }
-  }
+  changeDueContainer.innerHTML = changeString ? `${status} ${changeString}` : status;
+  cid = newCid.reverse();
+  displayCash();
 };
 
 window.onload = () => {
   priceContainer.textContent = `$${price.toFixed(2)}`;
   displayCash();
 };
-document.addEventListener("keydown", () => {
-  event.key === "Enter" && cash.value ? handlePurchase() : undefined;
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && cash.value) {
+    handlePurchase();
+  }
 });
+
 purchaseBtn.addEventListener("click", handlePurchase);

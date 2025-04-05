@@ -1,35 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta name="description" content="A Project to practicing Javascript" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A modern Cash Register Change Calculator" />
     <meta name="author" content="Jing Li" />
+    <title>Cash Register Change Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css" />
-    <title>Cash Register</title>
   </head>
   <body>
-    <header>
-      <h1>Cash Register Project</h1>
-    </header>
     <main>
-      <p>Price: <span id="price"></span></p>
-      <div>
-        <label>
-          Enter cash from customer:
-          <input id="cash" />
-        </label>
-        <button id="purchase-btn">Purchase</button>
-      </div>
+      <header>
+        <h1>Cash Register</h1>
+      </header>
+      
+      <section>
+        <p>Price: <span id="price"></span></p>
+        
+        <div>
+          <label for="cash">
+            Enter cash from customer:
+            <input id="cash" type="number" step="0.01" min="0" placeholder="Enter cash amount" />
+          </label>
+          <button id="purchase-btn">Calculate Change</button>
+        </div>
+      </section>
+      
       <hr />
-      <div>
-        <p>Change due:</p>
-        <p id="change-due">0</p>
-      </div>
+      
+      <section>
+        <h2>Change Details</h2>
+        <div>
+          <p>Change due:</p>
+          <p id="change-due">0</p>
+        </div>
+      </section>
+      
       <hr />
-      <div>
-        <p>Cash in drawer:</p>
-        <p id="drawer">0</p>
-      </div>
+      
+      <section>
+        <h2>Cash in Drawer</h2>
+        <div id="drawer">0</div>
+      </section>
     </main>
+
     <script src="script.js"></script>
   </body>
 </html>

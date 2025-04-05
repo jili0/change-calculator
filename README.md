@@ -1,6 +1,6 @@
 # Cash Register Change Calculator 💰
 
-<img src="app-preview/preview1.png" width="600" alt="Cash Register App Preview">
+<img src="app-preview/preview1.png" width="450" alt="Cash Register App Preview">
 
 ## Project Overview
 
